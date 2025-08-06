@@ -30,35 +30,49 @@ function loadEnvFile(filePath) {
   return env;
 }
 
-// Generate config.json from environment variables
-function generateConfig(env) {
-  const models = env.DEFAULT_MODELS ? env.DEFAULT_MODELS.split(',') : [];
+// Load configuration template from config-schemes
+function loadConfigTemplate(templatePath) {
+  if (!fs.existsSync(templatePath)) {
+    console.log('❌ Config template file not found');
+    process.exit(1);
+  }
   
+  const content = fs.readFileSync(templatePath, 'utf8');
+  const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+  
+  if (!jsonMatch) {
+    console.log('❌ Invalid config template format');
+    process.exit(1);
+  }
+  
+  try {
+    return JSON.parse(jsonMatch[1]);
+  } catch (error) {
+    console.log('❌ Failed to parse config template');
+    process.exit(1);
+  }
+}
+
+// Generate config.json from environment variables and template
+function generateConfig(env, template) {
+  // Override template with environment variables
   const config = {
-    APIKEY: env.ROUTER_APIKEY || 'your-router-secret-key',
-    HOST: env.ROUTER_HOST || '0.0.0.0',
-    PORT: parseInt(env.ROUTER_PORT) || 3456,
-    LOG: env.ROUTER_LOG === 'true',
-    API_TIMEOUT_MS: parseInt(env.ROUTER_API_TIMEOUT_MS) || 600000,
-    Providers: [
-      {
-        name: 'openrouter',
-        api_base_url: env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions',
-        api_key: env.OPENROUTER_API_KEY || 'sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-        models: models,
-        transformer: {
-          use: ['openrouter']
-        }
-      }
-    ],
-    Router: {
-      default: env.DEFAULT_ROUTE || 'openrouter,qwen/qwen3-coder',
-      background: env.BACKGROUND_ROUTE || 'openrouter,z-ai/glm-4.5-air:free',
-      think: env.THINK_ROUTE || 'openrouter,deepseek/deepseek-r1-0528-qwen3-8b:free',
-      longContext: env.LONGCONTEXT_ROUTE || 'openrouter,qwen/qwen3-235b-a22b:free',
-      longContextThreshold: parseInt(env.LONGCONTEXT_THRESHOLD) || 60000,
-      webSearch: env.WEBSEARCH_ROUTE || 'openrouter,qwen/qwen3-coder'
-    }
+    APIKEY: env.ROUTER_APIKEY || template.APIKEY,
+    HOST: env.ROUTER_HOST || template.HOST,
+    PORT: Number.parseInt(env.ROUTER_PORT) || template.PORT,
+    LOG: env.ROUTER_LOG === 'true' ? true : template.LOG,
+    API_TIMEOUT_MS: Number.parseInt(env.ROUTER_API_TIMEOUT_MS) || template.API_TIMEOUT_MS,
+    Providers: template.Providers.map(provider => {
+      // Override provider config with environment variables
+      return {
+        name: provider.name,
+        api_base_url: env[`${provider.name.toUpperCase()}_BASE_URL`] || provider.api_base_url,
+        api_key: env[`${provider.name.toUpperCase()}_API_KEY`] || provider.api_key,
+        models: provider.models,
+        transformer: provider.transformer
+      };
+    }),
+    Router: template.Router
   };
   
   return config;
@@ -85,9 +99,10 @@ function saveConfig(config, outputPath) {
 // Main function
 async function main() {
   const envPath = path.join(__dirname, '.env');
+  const templatePath = path.join(__dirname, 'config-scheme.md');
   const configPath = path.join(process.env.HOME || process.env.USERPROFILE, '.claude-code-router', 'config.json');
   
-  console.log('🔧 从 .env 文件生成配置...\n');
+  console.log('🔧 从模板和环境变量生成配置...\n');
   
   const env = loadEnvFile(envPath);
   
@@ -105,15 +120,18 @@ async function main() {
     }
   }
   
-  const config = generateConfig(env);
+  // Load config template from config-schemes
+  const templateConfig = loadConfigTemplate(path.join(__dirname, 'config-schemes', 'free-config.md'));
+  
+  const config = generateConfig(env, templateConfig);
   
   console.log('\n📄 生成的配置:');
   console.log(JSON.stringify(config, null, 2));
   
-  let confirm = process.argv.includes('--force') ? true : false;
+  let confirm = process.argv.includes('--force');
   
   if (!confirm) {
-    const readline = await import('readline');
+    const readline = await import('node:readline');
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
@@ -143,4 +161,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export { loadEnvFile, generateConfig, saveConfig };
+export { loadEnvFile, loadConfigTemplate, generateConfig, saveConfig };
