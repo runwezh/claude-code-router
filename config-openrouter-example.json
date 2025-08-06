@@ -1,0 +1,37 @@
+{
+  "APIKEY": "your-router-secret-key",
+  "HOST": "0.0.0.0",
+  "PORT": 3456,
+  "LOG": true,
+  "API_TIMEOUT_MS": 600000,
+  "Providers": [
+    {
+      "name": "openrouter",
+      "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key": "sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "models": [
+        "anthropic/claude-sonnet-4",
+        "openai/o3",
+        "z-ai/glm-4.5-air:free",
+        "z-ai/glm-4.5",
+        "moonshotai/kimi-k2:free",
+        "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+        "tngtech/deepseek-r1t2-chimera:free",
+        "qwen/qwen3-coder",
+        "deepseek/deepseek-r1-0528-qwen3-8b:free",
+        "qwen/qwen3-235b-a22b:free"
+      ],
+      "transformer": {
+        "use": ["openrouter"]
+      }
+    }
+  ],
+  "Router": {
+    "default": "openrouter,qwen/qwen3-coder",
+    "background": "openrouter,z-ai/glm-4.5-air:free",
+    "think": "openrouter,deepseek/deepseek-r1-0528-qwen3-8b:free",
+    "longContext": "openrouter,qwen/qwen3-235b-a22b:free",
+    "longContextThreshold": 60000,
+    "webSearch": "openrouter,qwen/qwen3-coder"
+  }
+}

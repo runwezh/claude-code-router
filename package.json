@@ -18,6 +18,7 @@
   ],
   "author": "musistudio",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
     "@fastify/static": "^8.2.0",
     "@musistudio/llms": "^1.0.18",

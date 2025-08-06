@@ -1,24 +1,42 @@
-FROM node:20-alpine
+# Multi-stage build for better ARM64 compatibility
+FROM node:20 AS builder
 
 WORKDIR /app
 
-# Copy all files
-COPY . .
-
-# Install pnpm globally
-RUN npm install -g pnpm
+# Copy package files
+COPY package.json ./
+COPY package-lock.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm install
 
-# Fix rollup optional dependencies issue
-RUN cd ui && npm install
+# Copy source code
+COPY . .
 
-# Build the entire project including UI
-RUN pnpm run build
+# Build the main application using Docker-specific build script
+RUN node scripts/build-docker.js
+
+# Use a fresh node image for the final stage
+FROM node:20-slim
+
+WORKDIR /app
+
+# Copy built artifacts from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy package files for runtime
+COPY package.json ./
+COPY package-lock.json ./
+
+# Install only runtime dependencies
+RUN npm install --production
+
+# Create .claude-code-router directory
+RUN mkdir -p /root/.claude-code-router
 
 # Expose port
-EXPOSE 3456
+EXPOSE ${ROUTER_PORT:-3456}
 
 # Start the router service
-CMD ["node", "dist/cli.js", "start"]
+CMD ["node", "dist/cli.cjs", "start"]

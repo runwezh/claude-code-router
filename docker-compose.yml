@@ -1,10 +1,52 @@
-version: "3.8"
-
 services:
   claude-code-router:
-    build: .
+    build: 
+      context: .
+      args:
+        - ROUTER_PORT=${ROUTER_PORT:-3456}
     ports:
-      - "3456:3456"
+      - "${ROUTER_PORT:-3456}:${ROUTER_PORT:-3456}"
     volumes:
       - ~/.claude-code-router:/root/.claude-code-router
+    environment:
+      - ROUTER_APIKEY=${ROUTER_APIKEY}
+      - ROUTER_HOST=${ROUTER_HOST}
+      - ROUTER_PORT=${ROUTER_PORT}
+      - ROUTER_LOG=${ROUTER_LOG}
+      - ROUTER_API_TIMEOUT_MS=${ROUTER_API_TIMEOUT_MS}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
+      - DEFAULT_MODELS=${DEFAULT_MODELS}
+      - DEFAULT_ROUTE=${DEFAULT_ROUTE}
+      - BACKGROUND_ROUTE=${BACKGROUND_ROUTE}
+      - THINK_ROUTE=${THINK_ROUTE}
+      - LONGCONTEXT_ROUTE=${LONGCONTEXT_ROUTE}
+      - LONGCONTEXT_THRESHOLD=${LONGCONTEXT_THRESHOLD}
+      - WEBSEARCH_ROUTE=${WEBSEARCH_ROUTE}
+      - NODE_OPTIONS=--max-old-space-size=4096
+      - NODE_ENV=production
     restart: unless-stopped
+    container_name: ${DOCKER_CONTAINER_NAME:-claude-code-router}
+    # 资源限制优化
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    # 网络优化
+    networks:
+      - claude-network
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${ROUTER_PORT:-3456}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  claude-network:
+    driver: bridge
