@@ -18,3 +18,4 @@ docker-compose.yml
 .env
 .env.example
 generate-config.js
+qdrant_storage
