@@ -4,3 +4,4 @@ log.txt
 .idea
 dist
 qdrant_storage
+config-glm-sample.json
