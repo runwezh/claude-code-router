@@ -1,6 +1,6 @@
 services:
   claude-code-router:
-    build: 
+    build:
       context: .
       args:
         - ROUTER_PORT=${ROUTER_PORT:-3456}
@@ -25,23 +25,24 @@ services:
       - WEBSEARCH_ROUTE=${WEBSEARCH_ROUTE}
       - NODE_OPTIONS=--max-old-space-size=4096
       - NODE_ENV=production
-    restart: unless-stopped
+    restart: always
     container_name: ${DOCKER_CONTAINER_NAME:-claude-code-router}
     # 资源限制优化
     deploy:
       resources:
         limits:
           memory: 1G
-          cpus: '0.5'
+          cpus: "0.5"
         reservations:
           memory: 512M
-          cpus: '0.25'
+          cpus: "0.25"
     # 网络优化
     networks:
       - claude-network
     # 健康检查
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${ROUTER_PORT:-3456}/health"]
+      test:
+        ["CMD", "curl", "-f", "http://localhost:${ROUTER_PORT:-3456}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
