@@ -8,7 +8,7 @@ Claude Code Router 现在支持通过环境变量进行配置，这样可以更�
 
 - `.env` - 本地环境变量配置（包含敏感信息）
 - `.env.example` - 环境变量示例文件
-- `generate-config.js` - 从环境变量生成配置的脚本
+- `generate-config.js` - 从环境变量生成配置的脚本,使用config-schemes/free-config.md文档内模板
 
 ## 🚀 使用方法
 
@@ -37,6 +37,9 @@ node generate-config.js --force
 ```bash
 # 使用 Docker Compose
 docker compose up -d
+
+# 重启服务
+docker compose restart
 
 # 或者直接使用 ccr
 ccr restart

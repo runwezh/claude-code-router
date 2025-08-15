@@ -1,6 +1,7 @@
 # Claude Code Router 配置模板
 
 ## 配置说明
+
 这是一个完全免费的配置模板，适合个人学习和轻量使用。
 
 ```json
@@ -16,8 +17,8 @@
       "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
       "api_key": "sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "models": [
-        "qwen/qwen3-coder",
-        "z-ai/glm-4.5",
+        "qwen/qwen3-coder:free",
+        "openai/gpt-oss-20b:free",
         "z-ai/glm-4.5-air:free",
         "moonshotai/kimi-k2:free"
       ],
@@ -29,12 +30,7 @@
     }
   ],
   "Router": {
-    "default": "openrouter,qwen/qwen3-coder",
-    "background": "openrouter,z-ai/glm-4.5-air:free",
-    "think": "openrouter,z-ai/glm-4.5-air:free",
-    "longContext": "openrouter,moonshotai/kimi-k2:free",
-    "longContextThreshold": 60000,
-    "webSearch": "openrouter,z-ai/glm-4.5"
+    "default": "openrouter,openai/gpt-oss-20b:free"
   }
 }
 ```
