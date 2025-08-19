@@ -25,7 +25,8 @@ services:
       - WEBSEARCH_ROUTE=${WEBSEARCH_ROUTE}
       - NODE_OPTIONS=--max-old-space-size=4096
       - NODE_ENV=production
-    restart: always
+      - DOCKER_CONTAINER=true
+    restart: unless-stopped
     container_name: ${DOCKER_CONTAINER_NAME:-claude-code-router}
     # 资源限制优化
     deploy:
